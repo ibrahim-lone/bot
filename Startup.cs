@@ -5,7 +5,7 @@ using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
+using Microsoft.Bot.Connector.Authentication;
 namespace EchoBot
 {
     public class Startup
@@ -18,15 +18,22 @@ namespace EchoBot
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddControllers().AddNewtonsoftJson();
+    {
+        services.AddControllers().AddNewtonsoftJson();
 
-            // Register the EchoBot class as the IBot implementation
-            services.AddSingleton<IBot, Bots.EchoBot>();
+        // ✅ Add authentication support for Bot Framework
+        services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
 
-            services.AddSingleton<IBotFrameworkHttpAdapter, BotFrameworkHttpAdapter>();
-            services.AddSingleton<IConfiguration>(Configuration);
-        }
+        // ✅ Adapter must depend on the auth
+        services.AddSingleton<IBotFrameworkHttpAdapter, BotFrameworkHttpAdapter>();
+
+        // ✅ Register your bot
+        services.AddSingleton<IBot, Bots.EchoBot>();
+
+        // ✅ Load configuration
+        services.AddSingleton<IConfiguration>(Configuration);
+    }
+
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
